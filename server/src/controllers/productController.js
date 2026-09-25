@@ -3,7 +3,6 @@ const {
   Category,
   ProductVariant,
   Bike,
-  ProductBike,
 } = require("../models");
 
 const getProducts = async (req, res) => {
@@ -133,66 +132,54 @@ const getCompatibleProducts = async (req, res)=> {
     const bikeId = req.query.bikeId; 
 
     if (!bikeId) {
-            return res.status(404).json({
+            return res.status(400).json({
             success: false,
-            message: "Bike ID is required",
+            message: "Bad Request",
         });
    }
 
     try{
-        const product = await Product.findByPk(bikeId, {
+        const bike = await Bike.findByPk(bikeId, {
 
             attributes: [
                 "id",
-                "name",
-                "slug",
-                "description",
-                "classification",
-                "imageUrl",
-                "isActive",
+                "brand",
+                "model",
+                "year",
+                "variant",
             ],
 
             include: [
-                {
-                model: Category,
-                as: "category",
-                required: true,
-                attributes: ["id", "name", "slug"],
-                },
 
                 {
-                model: ProductBike, 
-                as: "compatibleBikes", 
-                required: true, 
-                attributes: ['id', 'productId', 'bikeId']
-                }, 
-
-                {
-                model: Bike,
-                as: "compatibleBikes", 
-                required: true, 
+                model: Product,
+                as: "compatibleProducts", 
+                required: false, 
                 attributes: [
                                 "id",
-                                "brand",
-                                "model",
-                                "year",
-                                "variant",
+                                "name",
+                                "slug",
+                                "description",
+                                "classification",
+                                "imageUrl",
+                                "isActive",
                             ],
-
+                through: {attributes: [],},
                 },
             ], 
-                order: [["name", "ASC"]],
-                through: {attributes: [],}
-
         }
         )
 
-        if (!product) {
+        if (!bike) {
                 return res.status(404).json({
                 success: false,
                 message: "Bike not found",
             });
             }
+        res.status(200).json({
+          success: true, 
+          data: bike
+        })
 
     }
     catch (error) {
@@ -208,5 +195,5 @@ const getCompatibleProducts = async (req, res)=> {
 
 module.exports = {
   getProducts,
-  getProductID,
+  getProductID, getCompatibleProducts
 };

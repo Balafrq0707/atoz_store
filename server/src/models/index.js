@@ -14,7 +14,7 @@
   // Category → Products
   Category.hasMany(Product, {
     foreignKey: "categoryId",
-    as: "products",
+    as: "products",      
   });
 
   Product.belongsTo(Category, {

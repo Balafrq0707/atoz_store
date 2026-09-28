@@ -1,4 +1,4 @@
-const {getProducts, getProductID, getCompatibleProducts} = require('../controllers/productController'); 
+const {getProducts, getProductID} = require('../controllers/productController'); 
 
 
 const express = require ('express'); 
@@ -6,7 +6,8 @@ const express = require ('express');
 const router = express.Router();
 
 router.get('/', getProducts); 
-router.get ('/compatible', getCompatibleProducts); 
+router.get("/compatible", getCompatibleProducts);
+router.get("/search", searchProducts);
 router.get('/:id', getProductID ); 
 
 

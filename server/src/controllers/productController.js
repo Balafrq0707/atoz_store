@@ -5,6 +5,8 @@ const {
   Bike,
 } = require("../models");
 
+const { Op } = require("sequelize");
+
 const getProducts = async (req, res) => {
   try {
     const products = await Product.findAll({
@@ -193,7 +195,84 @@ const getCompatibleProducts = async (req, res)=> {
     
 }
 
+const searchProducts = async (req, res) => {
+  const { q } = req.query;
+
+  if (!q || !q.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: "Search query is required",
+    });
+  }
+
+  try {
+    const products = await Product.findAll({
+      where: {
+        isActive: true,
+        [Op.or]: [
+          {
+            name: {
+              [Op.iLike]: `%${q.trim()}%`,
+            },
+          },
+          {
+            description: {
+              [Op.iLike]: `%${q.trim()}%`,
+            },
+          },
+        ],
+      },
+
+      attributes: [
+        "id",
+        "name",
+        "slug",
+        "description",
+        "classification",
+        "imageUrl",
+        "isActive",
+      ],
+
+      include: [
+        {
+          model: Category,
+          as: "category",
+          attributes: ["id", "name", "slug"],
+        },
+        {
+          model: ProductVariant,
+          as: "variants",
+          required: false,
+          attributes: [
+            "id",
+            "variantName",
+            "sku",
+            "partNumber",
+            "price",
+            "stockQuantity",
+            "isActive",
+          ],
+        },
+      ],
+
+      order: [["name", "ASC"]],
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: products,
+    });
+  } catch (error) {
+    console.error("Error searching products:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Product search failed",
+    });
+  }
+};
+
 module.exports = {
   getProducts,
-  getProductID, getCompatibleProducts
+  getProductID, getCompatibleProducts, searchProducts
 };

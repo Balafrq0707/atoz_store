@@ -7,5 +7,6 @@ const router = express.Router();
 
 router.get('/', getProducts); 
 router.get('/:id', getProductID ); 
+router.get("/search", searchProducts);
 
 module.exports = router; 

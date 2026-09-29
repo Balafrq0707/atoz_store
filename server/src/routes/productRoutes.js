@@ -1,4 +1,4 @@
-const {getProducts, getProductID} = require('../controllers/productController'); 
+const {getProducts, getProductID, getCompatibleProducts, searchProducts} = require('../controllers/productController'); 
 
 
 const express = require ('express'); 

@@ -3,6 +3,8 @@ const cors = require("cors");
 const bikeRoutes = require("./routes/bikeRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const productRoutes = require('./routes/productRoutes'); 
+const authRoutes = require("./routes/authRoutes");
+
 
 
 const app = express();
@@ -20,6 +22,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/bikes", bikeRoutes);
 app.use("/api/categories", categoryRoutes); 
 app.use('/api/products', productRoutes); 
+app.use("/api/auth", authRoutes);
 
 
 

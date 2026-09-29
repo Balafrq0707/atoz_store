@@ -129,71 +129,102 @@ const getProductID = async (req, res) => {
   }
 };
 
-const getCompatibleProducts = async (req, res)=> {
+const getCompatibleProducts = async (req, res) => {
+  const { bikeId, categoryId } = req.query;
 
-    const bikeId = req.query.bikeId; 
-
-    if (!bikeId) {
-            return res.status(400).json({
-            success: false,
-            message: "Bad Request",
-        });
-   }
-
-    try{
-        const bike = await Bike.findByPk(bikeId, {
-
-            attributes: [
-                "id",
-                "brand",
-                "model",
-                "year",
-                "variant",
-            ],
-
-            include: [
-
-                {
-                model: Product,
-                as: "compatibleProducts", 
-                required: false, 
-                attributes: [
-                                "id",
-                                "name",
-                                "slug",
-                                "description",
-                                "classification",
-                                "imageUrl",
-                                "isActive",
-                            ],
-                through: {attributes: [],},
-                },
-            ], 
-        }
-        )
-
-        if (!bike) {
-                return res.status(404).json({
-                success: false,
-                message: "Bike not found",
-            });
-            }
-        res.status(200).json({
-          success: true, 
-          data: bike
-        })
-
-    }
-    catch (error) {
-    console.log("Error fetching compatible products:", error);
-
-    res.status(500).json({
+  if (!bikeId) {
+    return res.status(400).json({
       success: false,
-      message: "Fetching failed",
+      message: "Bike ID is required",
     });
   }
-    
-}
+
+  try {
+    // 1. Make sure the bike exists
+    const bike = await Bike.findByPk(bikeId, {
+      attributes: ["id", "brand", "model", "year", "variant"],
+    });
+
+    if (!bike) {
+      return res.status(404).json({
+        success: false,
+        message: "Bike not found",
+      });
+    }
+
+    // 2. If categoryId was provided, make sure the category exists
+    if (categoryId) {
+      const category = await Category.findByPk(categoryId);
+
+      if (!category) {
+        return res.status(404).json({
+          success: false,
+          message: "Category not found",
+        });
+      }
+    }
+
+    // 3. Fetch products compatible with the bike
+    const products = await bike.getCompatibleProducts({
+      attributes: [
+        "id",
+        "name",
+        "slug",
+        "description",
+        "classification",
+        "imageUrl",
+        "isActive",
+      ],
+
+      where: {
+        isActive: true,
+        ...(categoryId && {
+          categoryId: categoryId,
+        }),
+      },
+
+      include: [
+        {
+          model: Category,
+          as: "category",
+          attributes: ["id", "name", "slug"],
+        },
+        {
+          model: ProductVariant,
+          as: "variants",
+          required: false,
+          attributes: [
+            "id",
+            "variantName",
+            "sku",
+            "partNumber",
+            "price",
+            "stockQuantity",
+            "lowStockThreshold",
+            "isActive",
+          ],
+        },
+      ],
+
+      order: [["name", "ASC"]],
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        bike,
+        products,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching compatible products:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch compatible products",
+    });
+  }
+};
 
 const searchProducts = async (req, res) => {
   const { q } = req.query;

@@ -36,6 +36,16 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: "customer",
     },
+
+    otpCode: {
+      type: DataTypes.STRING(6),
+      allowNull: true,
+    },
+
+    otpExpiresAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: "users",
